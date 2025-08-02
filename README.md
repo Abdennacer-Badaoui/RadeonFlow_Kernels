@@ -37,24 +37,20 @@ We implemented the FP8-GEMM and MoE kernels in HIP, and MLA kernel in PyTorch. Y
 
 This project relies on LibTorch for correctness checking. You can download prebuilt binaries for LibTorch on pytorch.org.
 
-The kernels no longer supports GPUs other than MI300X (though you can see some macros and codes trying to support RDNA4 and NVIDIA GPUs), and the result can only be reproduced on ROCm 6.3.1 (find explanation and guides for upgrading ROCm version located in later parts). So make sure you are building this project on the correct hardware and software version, or the compilation would fail or the results won't be correct.
+The kernels no longer supports GPUs other than MI300X (though you can see some macros and codes trying to support RDNA4), and the result can only be reproduced on ROCm 6.3.1 (find explanation and guides for upgrading ROCm version located in later parts). So make sure you are building this project on the correct hardware and software version, or the compilation would fail or the results won't be correct.
 
 * [IMPORTANT] After extracting LibTorch, replace all the .so files in LibTorch with the libraries bundled in your PyTorch's implementation! If the version of ROCm libraries are (even slightly) different, you will very likely to run into mystrious errors (like segmentation fault and result incorrect) on MoE kernel. In addition, you may get bad performance or fail to run the kernel, since we fixed the algorithm index for hipBLASlt.
 
 To get started, create `config.cmake` in project root (the same directory as `README.md`)
 
 ```cmake
-set(TARGET_VENDOR "AMD") # "AMD" OR "NVIDIA"
+set(TARGET_VENDOR "AMD")
 set(LIBTORCH_DIR PATH/TO/YOUR/LIBTORCH)
 ## AMD Specific Settings
 set(TARGET_GPU_ARCH "gfx942")
 # The following settings are deprecated.
 # list(APPEND CMAKE_PREFIX_PATH /opt/rocm/hip /opt/rocm)
 # add_definitions(-DTEST_ON_RDNA4)
-## NVIDIA Specific Settings
-# 89 for 40XX, 120 for 50XX
-# set(CMAKE_CUDA_ARCHITECTURES 120)
-# list(PREPEND CMAKE_PREFIX_PATH /opt/cuda/)
 ```
 
 After that, run the following commands to build the project:
