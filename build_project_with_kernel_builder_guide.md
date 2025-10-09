@@ -134,9 +134,9 @@ Specification of a kernel named "gemm". You can define multiple kernel sections 
 
 ### The `flake.nix` Reproducibility File 
 
-To ensure anyone can build your kernel on any machine, we use a flake.nix file. It locks the exact version of the kernel-builder and its dependencies. (You can just copy and past this example and change the description)
+To ensure anyone can build your kernel on any machine, we use a flake.nix file. It locks the exact version of the kernel-builder and its dependencies. (You can just copy and paste this example and change the description)
 
-```toml
+```nix
 {
   description = "Flake for GEMM kernel";
 
@@ -161,7 +161,7 @@ To ensure anyone can build your kernel on any machine, we use a flake.nix file. 
 
 This step is key. We’re not just making the function available in Python; we’re turning it into a native PyTorch operator. That means it becomes a first-class part of PyTorch itself, accessible through `torch.ops`.
 
-The file `torch-ext/torch_binding.cpp` handles this registration 
+The file `torch-ext/torch_binding.cpp` handles this registration. 
 
 ```C
 #include <torch/all.h>
@@ -218,7 +218,7 @@ TORCH_LIBRARY_EXPAND(TORCH_EXTENSION_NAME, ops) {
 
 REGISTER_EXTENSION(TORCH_EXTENSION_NAME)
 ```
-torch_binding.h containing function declarations; For instance, the `gemm` kernel has the following declaration in `torch_binding.h`:
+The `torch_binding.h` file contains function declarations. For instance, the `gemm` kernel has the following declaration in `torch_binding.h`:
 
 ```h
 #pragma once
@@ -328,13 +328,13 @@ Now that we built our kernel, we can test it and upload it to the Hub.
 
 #### Building the Kernel for All PyTorch and ROCm Versions
 
-One small thing we'll want to do before we share, is clean up all of the development artifacts that were generated during the build process to avoid uploading unnecessary files. 
+One small thing we'll want to do before we share is clean up all of the development artifacts that were generated during the build process to avoid uploading unnecessary files. 
 
 ```bash
 build2cmake clean build.toml 
 ```
 
-To build the kernel for all supported versions of PyTorch and ROCm, the kernel-builder tool automate the process: 
+To build the kernel for all supported versions of PyTorch and ROCm, the kernel-builder tool automates the process: 
 
 ```bash
 # Outside of the dev shell, run the following command
@@ -380,8 +380,8 @@ git checkout -b main
 # Update to use LFS for the binary files
 git lfs track "*.so"
 
-# Add and commit your changes. (being careful to only include the necessary files
-# since our build2cmake command generated a lot of dev specific files)
+# Add and commit your changes (being careful to only include the necessary files
+# since our build2cmake command generated a lot of dev-specific files)
 git add \
   build/ gemm/ include/ src/utils tests/checker \
   torch-ext/torch_binding.cpp torch-ext/torch_binding.h torch-ext/gemm \
