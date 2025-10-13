@@ -157,6 +157,41 @@ To ensure anyone can build your kernel on any machine, we use a flake.nix file. 
 }
 ```
 
+### Writing the Kernel
+
+Now for the GPU code. Inside `gemm/gemm_launcher.hip`, we define how the GEMM kernel is launched.
+Depending on the configuration, we either call the new optimized `gemm/gemm_kernel` or fall back to the legacy implementation (`gemm/gemm_kernel_legacy`).
+
+```C
+// ... previous includes and definitions
+extern "C" void run(
+    void *a, void *b, void *as, void *bs, void *c,
+    int m, int n, int k,
+    PerfMetrics *metrics, hipStream_t job_stream0
+) {
+    const __FP8_TYPE *a_ptr = static_cast<const __FP8_TYPE *>(a);
+    const __FP8_TYPE *b_ptr = static_cast<const __FP8_TYPE *>(b);
+    __BF16_TYPE *c_ptr = static_cast<__BF16_TYPE *>(c);
+    const float *as_ptr = static_cast<const float *>(as);
+    const float *bs_ptr = static_cast<const float *>(bs);
+
+    KernelTimerScoped timer(timers, 2LL * m * n * k,
+        metrics ? &metrics->entries[0].time : nullptr,
+        metrics ? &metrics->entries[0].gflops : nullptr, job_stream0);
+
+    // Dispatch GEMM to the fastest available implementation
+    switch (pack_shape(m, n, k)) {
+        DISPATCH_GEMM(1024, 1536, 7168, 256, 128, 128, 4, 2, 512, 4, 16);
+        DISPATCH_GEMM(6144, 7168, 2304, 256, 128, 128, 4, 2, 512, 1, 16);
+        default: {
+            printf("Error: Unsupported shape M=%d, K=%d, N=%d\n", m, k, n);
+            abort();
+        }
+    }
+}
+// ...
+```
+
 ### Registering a Native PyTorch Operator 
 
 This step is key. We’re not just making the function available in Python; we’re turning it into a native PyTorch operator. That means it becomes a first-class part of PyTorch itself, accessible through `torch.ops`.
