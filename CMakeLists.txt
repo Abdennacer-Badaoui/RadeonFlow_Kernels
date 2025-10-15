@@ -72,13 +72,8 @@ endif()
 # Problem 3: MLA
 
 if (TARGET_VENDOR STREQUAL "AMD")
-# Commenting out this duplicate definition - the mla library is properly defined below at line 189
-# add_library(mla SHARED src/mla/mla.cpp)
-# target_link_libraries(mla hip::device timer)
-# set_target_properties(mla PROPERTIES COMPILE_FLAGS "--save-temps")
 
 
-# target_include_directories(mla PRIVATE include)
 
 add_library(mla_test tests/mla/mla_test.cpp)
 target_include_directories(mla_test PRIVATE tests/checker)
